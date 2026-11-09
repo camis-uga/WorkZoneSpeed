@@ -12,11 +12,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
   --bg:#f5f3ef; --paper:#fbfaf7; --ink:#1a1a18; --mid:#5a5a52; --soft:#8a877e;
   --line:#e2ded6; --red:#ba2020; --red-light:#f0e8e8; --amber:#f26a1b;
   --night:#17161c; --night-2:#211f27;
+  --c-before:#8a877e; --c-within:#ba2020; --c-after:#e0a23a;
   --serif:'DM Serif Display',Georgia,serif; --sans:'DM Sans',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -26,7 +28,7 @@ a{color:inherit}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 
 /* nav */
-nav{position:sticky;top:0;z-index:10;background:rgba(245,243,239,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav{position:sticky;top:0;z-index:1000;background:rgba(245,243,239,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
 .brand{font-family:var(--serif);font-size:1.15rem;text-decoration:none}
 .brand b{color:var(--red);font-weight:400}
@@ -47,26 +49,66 @@ nav ul a:hover{color:var(--red)}
 .chip{border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 14px;font-size:.8rem;color:#ece6da}
 
 /* sections */
-section{padding:88px 0;border-bottom:1px solid var(--line)}
+section{scroll-margin-top:60px;padding:88px 0;border-bottom:1px solid var(--line)}
 .kicker{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:10px}
 h2{font-family:var(--serif);font-weight:400;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.15;margin-bottom:20px}
 h3{font-family:var(--serif);font-weight:400;font-size:1.2rem;line-height:1.3;margin-bottom:8px}
 p{color:var(--mid)}
+.narrow{max-width:680px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
 
-.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-.fact{background:var(--paper);padding:22px}
-.fact .n{font-family:var(--serif);font-size:1.9rem;line-height:1}
-.fact .l{font-size:.82rem;color:var(--soft);margin-top:6px}
+/* sites */
+.sites{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;margin-top:32px;align-items:stretch}
+#map{min-height:460px;border:1px solid var(--line);background:#e9e6df}
+.site-list{list-style:none;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);align-content:start}
+.site-list li{background:var(--paper);padding:14px 16px;display:grid;grid-template-columns:30px 1fr;gap:10px;cursor:pointer}
+.site-list li:hover,.site-list li.on{background:#fff}
+.site-list .pin{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.site-list strong{font-weight:500;display:block;line-height:1.3}
+.site-list span{font-size:.8rem;color:var(--soft)}
+.mk{width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);font:700 12px/24px var(--sans);text-align:center}
+.mk.approx{background:#fff;color:var(--red);border-color:var(--red)}
+.leaflet-popup-content{font-family:var(--sans);font-size:.85rem;line-height:1.45}
+.leaflet-popup-content b{font-weight:500}
+.muted-tiles{filter:grayscale(.85) contrast(.95) brightness(1.04)}
+.note{font-size:.8rem;color:var(--soft);margin-top:12px}
 
-/* tasks */
-.tasks{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
-.task{display:grid;grid-template-columns:64px 1fr 150px;gap:20px;align-items:center;background:var(--paper);padding:22px 24px}
-.task .num{font-family:var(--serif);font-size:1.8rem;color:var(--red)}
-.task p{font-size:.92rem}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--red)}
-.pct{font-size:.78rem;color:var(--soft);margin-top:6px;text-align:right}
+/* data collection */
+.figure{background:var(--paper);border:1px solid var(--line);padding:24px;margin-top:32px}
+.figure svg{display:block;width:100%;height:auto}
+.caption{font-size:.82rem;color:var(--soft);margin-top:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.stat{background:var(--paper);padding:20px}
+.stat .n{font-family:var(--serif);font-size:1.7rem;line-height:1.1}
+.stat .l{font-size:.82rem;color:var(--soft);margin-top:6px}
+table.sess{width:100%;border-collapse:collapse;margin-top:28px;font-size:.88rem;background:var(--paper);border:1px solid var(--line)}
+table.sess th,table.sess td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.sess th{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:500}
+table.sess td:first-child{font-weight:500}
+.tablewrap{overflow-x:auto}
+
+/* results */
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:.82rem;color:var(--mid);margin-top:18px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.chart-card{background:var(--paper);border:1px solid var(--line);padding:22px 22px 14px;margin-top:20px}
+.chart-card h3{margin-bottom:2px}
+.chart-card .sub{font-size:.82rem;color:var(--soft)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.tabs button{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--paper);color:var(--mid);padding:7px 14px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.site-detail{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:center}
+.site-detail .obs{font-size:.92rem}
+.site-detail .meta{font-size:.8rem;color:var(--soft);margin-bottom:10px}
+svg text{font-family:var(--sans)}
+
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.finding{background:var(--paper);padding:24px}
+.finding .tag{display:inline-block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:3px;margin-bottom:12px}
+.tag.good{background:#e7efe6;color:#2f6b34}
+.tag.bad{background:var(--red-light);color:var(--red)}
+.tag.rec{background:#efe9df;color:#7a5a2a}
+.finding ul{padding-left:18px;color:var(--mid);font-size:.9rem}
+.finding li+li{margin-top:8px}
 
 /* techniques */
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
@@ -76,25 +118,10 @@ p{color:var(--mid)}
 .tag.new{background:var(--red-light);color:var(--red)}
 .card p{font-size:.9rem}
 
-/* method */
-.method{background:var(--night);color:#ece6da;border-bottom:none}
-.method h2{color:#f6f1e8}
-.method p{color:#b9b2a5}
-.method .kicker{color:#ff8f6b}
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:36px;counter-reset:s}
-.step{border-top:2px solid #ff6b4a;padding-top:18px}
-.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-size:1.5rem;color:#ff8f6b;display:block;margin-bottom:6px}
-.step h3{color:#f6f1e8}
+.step{border-top:2px solid var(--red);padding-top:16px}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-size:1.4rem;color:var(--red);display:block;margin-bottom:4px}
 .step p{font-size:.9rem}
-
-/* timeline */
-.timeline{list-style:none;margin-top:28px;border-left:2px solid var(--line);padding-left:26px}
-.timeline li{position:relative;padding:0 0 22px}
-.timeline li::before{content:"";position:absolute;left:-33px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--soft)}
-.timeline li.done::before{background:var(--red);border-color:var(--red)}
-.timeline li.now::before{background:var(--bg);border-color:var(--red);box-shadow:0 0 0 4px var(--red-light)}
-.timeline time{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
-.timeline strong{display:block;font-weight:500}
 
 /* team */
 .people{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
@@ -110,18 +137,20 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 footer a{color:var(--red);text-decoration:none}
 
 @media (max-width:860px){
-  .two{grid-template-columns:1fr;gap:36px}
-  .grid3{grid-template-columns:1fr 1fr}
+  .two,.sites,.site-detail{grid-template-columns:1fr;gap:28px}
+  #map{min-height:360px}
+  .grid3,.findings{grid-template-columns:1fr 1fr}
+  .stats,.steps{grid-template-columns:1fr 1fr}
   .steps{grid-template-columns:1fr 1fr}
   .people{grid-template-columns:1fr}
-  .task{grid-template-columns:44px 1fr}
-  .task .prog{grid-column:2}
   nav ul{display:none}
 }
 @media (max-width:560px){
   .wrap{padding:0 16px}
-  .grid3,.steps{grid-template-columns:1fr}
+  .grid3,.steps,.findings{grid-template-columns:1fr}
+  .matrix-cell{font-size:.72rem}
   section{padding:64px 0}
+  .figure{padding:14px}
   .hero .wrap{padding-top:80px;padding-bottom:80px}
   .hero::after{background:linear-gradient(180deg,rgba(23,22,28,.55),rgba(23,22,28,.92))}
 }
@@ -133,9 +162,10 @@ footer a{color:var(--red);text-decoration:none}
   <a class="brand" href="https://camis-uga.github.io/lab/">CAMIs <b>Lab</b></a>
   <ul>
     <li><a href="#overview">Overview</a></li>
-    <li><a href="#tasks">Tasks</a></li>
-    <li><a href="#techniques">Techniques</a></li>
-    <li><a href="#method">Method</a></li>
+    <li><a href="#literature">Literature</a></li>
+    <li><a href="#survey">DOT survey</a></li>
+    <li><a href="#sites">Field study</a></li>
+    <li><a href="#results">Findings</a></li>
     <li><a href="#team">Team</a></li>
   </ul>
 </div></nav>
@@ -146,80 +176,186 @@ footer a{color:var(--red);text-decoration:none}
   <p class="lede">An evidence-based look at which speed reduction methods actually slow drivers down in Georgia work zones, so that workers and the traveling public get home safely.</p>
   <div class="chips">
     <span class="chip">Sponsored by GDOT &amp; FHWA</span>
-    <span class="chip">2025 – 2028</span>
+    <span class="chip">6 active work zones</span>
     <span class="chip">Field radar + video data</span>
   </div>
 </div></header>
 
-<section id="overview"><div class="wrap two">
-  <div>
-    <div class="kicker">Overview</div>
-    <h2>Why work zone speeds matter</h2>
-    <p>Work zones narrow lanes, shift traffic and put people a few feet from moving vehicles. Speeding in these conditions raises both the chance and the severity of crashes, especially rear-end collisions near queues.</p>
-    <p style="margin-top:14px">This project investigates how well traditional and emerging speed reduction techniques work in Georgia construction zones. We combine a national literature review and a survey of State DOTs with field data collected at active GDOT work zones, and turn the results into recommendations and a Work Zone Safety Guide for GDOT.</p>
-  </div>
-  <div class="facts">
-    <div class="fact"><div class="n">30</div><div class="l">months, July 2025 – January 2028</div></div>
-    <div class="fact"><div class="n">21</div><div class="l">State DOTs surveyed (30 professionals)</div></div>
-    <div class="fact"><div class="n">6</div><div class="l">active GDOT work zone sites studied</div></div>
-    <div class="fact"><div class="n">5</div><div class="l">research tasks, ending in a safety guide</div></div>
-  </div>
+<section id="overview"><div class="wrap narrow">
+  <div class="kicker">Overview</div>
+  <h2>Why work zone speeds matter</h2>
+  <p>Work zones narrow lanes, shift traffic and put people a few feet from moving vehicles. Speeding in these conditions raises both the chance and the severity of crashes, especially rear-end collisions near queues.</p>
+  <p style="margin-top:14px">This project measures how drivers actually respond to the traffic control used in Georgia construction zones. We record vehicle speeds before, within and after active GDOT work zones, compare sites with different layouts and countermeasures, and use the evidence to recommend speed reduction techniques for GDOT.</p>
 </div></section>
 
-<section id="tasks"><div class="wrap">
-  <div class="kicker">Research plan</div>
-  <h2>Five tasks</h2>
-  <p>Progress as of Q3 2026.</p>
-  <div class="tasks">
-    <div class="task"><div class="num">1</div><div><h3>Research best practices and resources</h3><p>Literature review of speed reduction methods and a national State DOT survey on effectiveness, cost and promising technologies.</p></div><div class="prog"><div class="bar"><i style="width:100%"></i></div><div class="pct">Complete</div></div></div>
-    <div class="task"><div class="num">2</div><div><h3>Understand current GDOT practices</h3><p>Interviews with GDOT district staff and field data collection before, within and after work zones covering bridges, interstates and a roundabout.</p></div><div class="prog"><div class="bar"><i style="width:100%"></i></div><div class="pct">Complete</div></div></div>
-    <div class="task"><div class="num">3</div><div><h3>Recommend new and innovative methods</h3><p>Rank candidate techniques on speed compliance, crash risk, cost and fit with GDOT infrastructure, and choose deployment sites.</p></div><div class="prog"><div class="bar"><i style="width:30%"></i></div><div class="pct">30%</div></div></div>
-    <div class="task"><div class="num">4</div><div><h3>Field testing and data analysis</h3><p>Deploy the prioritized methods with GDOT and contractors and measure their effect on speed, traffic flow and driver behavior.</p></div><div class="prog"><div class="bar"><i style="width:0%"></i></div><div class="pct">Upcoming</div></div></div>
-    <div class="task"><div class="num">5</div><div><h3>Final report and safety guide</h3><p>Draft and final reports, a Work Zone Safety Guide, and a seminar for the GDOT Office of Construction and its consultants.</p></div><div class="prog"><div class="bar"><i style="width:0%"></i></div><div class="pct">Upcoming</div></div></div>
-  </div>
-</div></section>
+<section id="literature"><div class="wrap">
+  <div class="kicker">01 · Literature review</div>
+  <h2>What the research says</h2>
+  <p class="narrow">We reviewed published evaluations of work zone speed reduction methods. Traditional traffic control devices typically lower speeds by only a few mph, and how well they work depends on the site. GDOT reviewers recommended looking more closely at emerging, data-driven techniques.</p>
 
-<section id="techniques"><div class="wrap">
-  <div class="kicker">What we're evaluating</div>
-  <h2>Speed reduction techniques</h2>
-  <p>Typical reductions below are drawn from published studies reviewed in Task 1.</p>
+  <div class="chart-card">
+    <h3>Reported speed reductions of traditional devices</h3>
+    <div class="sub">Typical range across the studies reviewed (mph)</div>
+    <div id="litChart"></div>
+  </div>
+
   <div class="grid3">
-    <div class="card"><span class="tag trad">Traditional</span><h3>Dynamic speed feedback signs</h3><p>Display each driver's speed back to them. Reported reductions of about 3–6 mph.</p></div>
-    <div class="card"><span class="tag trad">Traditional</span><h3>Portable changeable message signs</h3><p>About 1–4 mph for general messages, up to 7 mph when messages are vehicle-activated.</p></div>
-    <div class="card"><span class="tag trad">Traditional</span><h3>Temporary transverse rumble strips</h3><p>Alert drivers through sound and vibration, around 1–2 mph, and especially effective for trucks.</p></div>
-    <div class="card"><span class="tag trad">Traditional</span><h3>Law enforcement presence</h3><p>Ranked among the most effective methods by State DOT respondents.</p></div>
-    <div class="card"><span class="tag new">Emerging</span><h3>Queue warning systems</h3><p>Sensors detect slowing traffic and warn approaching drivers on upstream message signs.</p></div>
-    <div class="card"><span class="tag new">Emerging</span><h3>Connected vehicle (V2X) alerts</h3><p>Roadside units share work zone and hazard information directly with vehicles.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Temporary transverse rumble strips</h3><p>About 1–2 mph. They alert drivers through sound and vibration, and are especially effective for trucks.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Dynamic speed feedback signs</h3><p>About 3–6 mph. Speed trailers show each driver their own speed.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Portable changeable message signs</h3><p>About 1–4 mph for general messages, and up to 7 mph when the message is triggered by the approaching vehicle.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Variable speed limits</h3><p>Results depend on the site. They use sensors for corridor-wide monitoring, smooth traffic and reduce crashes.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Advisory speed signs</h3><p>Little added reduction where advance warning signs are already present.</p></div>
+    <div class="card"><span class="tag trad">Traditional</span><h3>Portable traffic control signals</h3><p>Wireless and programmable. They resolve conflicts at lane closures more than they lower speeds.</p></div>
+    <div class="card"><span class="tag new">Emerging</span><h3>Work zone queue warning systems</h3><p>Sensors detect slowing traffic and report it to the traffic management center, which warns approaching drivers on upstream message signs. These are being tested in several states.</p></div>
+    <div class="card"><span class="tag new">Emerging</span><h3>Connected vehicle (I2V / V2I)</h3><p>Roadside units share signal, work zone and hazard data with vehicles. For example, Ann Arbor's smart intersection project runs at more than 20 intersections.</p></div>
+    <div class="card"><span class="tag new">Emerging</span><h3>Automated speed enforcement</h3><p>Camera-based enforcement in work zones. It was the technology State DOT respondents named most often as promising.</p></div>
   </div>
 </div></section>
 
-<section id="method" class="method"><div class="wrap">
-  <div class="kicker">Approach</div>
-  <h2>From roadside sensing to recommendations</h2>
-  <p style="max-width:620px">Portable roadside radar and cameras are set up before, within and after each work zone to measure how drivers respond to the traffic control in place.</p>
+<section id="survey"><div class="wrap">
+  <div class="kicker">02 · State DOT survey</div>
+  <h2>What practitioners told us</h2>
+  <p class="narrow">We surveyed 30 work zone professionals from 21 State DOTs, including Nevada, North Carolina, Washington and Florida. Respondents included chief construction engineers, work zone engineers and traffic operations engineers. Most work in mixed environments (74%) and on high-speed highways (70%).</p>
+
+  <div class="two" style="margin-top:32px">
+    <div class="chart-card" style="margin-top:0">
+      <h3>Effectiveness vs. cost</h3>
+      <div class="sub">Average ratings on a 1–5 scale, grouped into high (3.5 or above), moderate (3.0–3.49) and low (below 3.0)</div>
+      <div id="matrix"></div>
+    </div>
+    <div>
+      <div class="chart-card" style="margin-top:0">
+        <h3>Most promising technologies</h3>
+        <div class="sub">Share of respondents</div>
+        <div id="promising"></div>
+      </div>
+      <div class="chart-card">
+        <h3>What respondents need</h3>
+        <p style="font-size:.92rem">Higher-resolution, real-time traffic data to make emerging tools work. Other ideas included automated flaggers to reduce worker exposure, and intelligent systems that communicate directly with travelers.</p>
+      </div>
+    </div>
+  </div>
+  <p class="note">Rated highest for effectiveness: law enforcement, queue warning systems, dynamic speed feedback signs and temporary rumble strips. Rumble strips are the only one of these that is also low cost. Advisory speed signs rated lowest for effectiveness.</p>
+</div></section>
+
+<section id="sites"><div class="wrap">
+  <div class="kicker">03 · Field data collection</div>
+  <h2>Six active GDOT work zones</h2>
+  <p class="narrow">The sites cover an urban freeway bridge replacement, rural interstate resurfacing, a new roundabout, an arterial widening and a multi-lane closure, so that the same speed measures can be compared across very different settings.</p>
+  <div class="sites">
+    <div id="map" role="img" aria-label="Map of north-east Georgia showing six surveyed work zone sites"></div>
+    <ol class="site-list" id="siteList"></ol>
+  </div>
+  <p class="note">Filled pins mark the recorded data collection location. Outlined pins mark the corridor where the location is approximate.</p>
+</div></section>
+
+<section id="data"><div class="wrap">
+  <div class="kicker">03 · Collection &amp; analysis</div>
+  <h2>Measuring speed through the work zone</h2>
+  <p class="narrow">At each site we set up portable roadside cameras, with radar for ground-truth speeds, at positions before, within and after the work zone. Every vehicle is tracked through each camera view, and its speed is estimated from calibrated camera geometry and checked against radar.</p>
+
+  <div class="figure">
+    <svg viewBox="0 -24 1000 324" aria-label="Diagram of sensor positions before, within and after a work zone">
+      <defs>
+        <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#f6e6d8"/><line x1="0" y1="0" x2="0" y2="10" stroke="#f26a1b" stroke-width="3" opacity=".35"/></pattern>
+      </defs>
+      <!-- road -->
+      <rect x="20" y="120" width="960" height="110" fill="#3a3a40" rx="4"/>
+      <line x1="20" y1="175" x2="980" y2="175" stroke="#f3efe7" stroke-width="3" stroke-dasharray="26 18"/>
+      <!-- work zone closed lane -->
+      <path d="M330 175 L400 124 L650 124 L720 175 Z" fill="url(#hatch)"/>
+      <g fill="#f26a1b">
+        <circle cx="340" cy="168" r="5"/><circle cx="356" cy="156" r="5"/><circle cx="372" cy="145" r="5"/><circle cx="388" cy="133" r="5"/>
+        <circle cx="450" cy="128" r="5" opacity=".0"/>
+        <circle cx="662" cy="133" r="5"/><circle cx="678" cy="145" r="5"/><circle cx="694" cy="156" r="5"/><circle cx="710" cy="168" r="5"/>
+      </g>
+      <text x="525" y="153" text-anchor="middle" font-size="15" fill="#7a3a10" font-weight="700" letter-spacing="2">WORK ZONE</text>
+      <!-- vehicles -->
+      <g fill="#f3efe7"><rect x="90" y="190" width="44" height="22" rx="5"/><rect x="250" y="190" width="44" height="22" rx="5"/><rect x="520" y="190" width="44" height="22" rx="5"/><rect x="820" y="190" width="44" height="22" rx="5"/></g>
+      <path d="M150 260 L940 260" stroke="#8a877e" stroke-width="1.5" marker-end="url(#arr)"/>
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#8a877e"/></marker></defs>
+      <text x="545" y="285" text-anchor="middle" font-size="13" fill="#8a877e">direction of travel</text>
+      <!-- sensors -->
+      <g font-size="13" text-anchor="middle">
+        <g transform="translate(170,0)"><line x1="0" y1="62" x2="0" y2="120" stroke="#5a5a52" stroke-width="2"/><rect x="-16" y="46" width="32" height="20" rx="4" fill="#1a1a18"/><circle cx="0" cy="56" r="5" fill="#ff6b4a"/><path d="M0 70 L-55 185 L55 185 Z" fill="#8a877e" opacity=".18"/><circle cx="0" cy="22" r="13" fill="#8a877e"/><text y="27" fill="#fff" font-weight="700">1</text><text y="-4" fill="#1a1a18" font-weight="500" dy="0">Before</text></g>
+        <g transform="translate(450,0)"><line x1="0" y1="62" x2="0" y2="120" stroke="#5a5a52" stroke-width="2"/><rect x="-16" y="46" width="32" height="20" rx="4" fill="#1a1a18"/><circle cx="0" cy="56" r="5" fill="#ff6b4a"/><path d="M0 70 L-55 185 L55 185 Z" fill="#ba2020" opacity=".16"/><circle cx="0" cy="22" r="13" fill="#ba2020"/><text y="27" fill="#fff" font-weight="700">2</text><text y="-4" fill="#1a1a18" font-weight="500">Within</text></g>
+        <g transform="translate(600,0)"><line x1="0" y1="62" x2="0" y2="120" stroke="#5a5a52" stroke-width="2"/><rect x="-16" y="46" width="32" height="20" rx="4" fill="#1a1a18"/><circle cx="0" cy="56" r="5" fill="#ff6b4a"/><path d="M0 70 L-55 185 L55 185 Z" fill="#ba2020" opacity=".16"/><circle cx="0" cy="22" r="13" fill="#ba2020"/><text y="27" fill="#fff" font-weight="700">3</text><text y="-4" fill="#1a1a18" font-weight="500">Within</text></g>
+        <g transform="translate(860,0)"><line x1="0" y1="62" x2="0" y2="120" stroke="#5a5a52" stroke-width="2"/><rect x="-16" y="46" width="32" height="20" rx="4" fill="#1a1a18"/><circle cx="0" cy="56" r="5" fill="#ff6b4a"/><path d="M0 70 L-55 185 L55 185 Z" fill="#e0a23a" opacity=".2"/><circle cx="0" cy="22" r="13" fill="#e0a23a"/><text y="27" fill="#fff" font-weight="700">4</text><text y="-4" fill="#1a1a18" font-weight="500">After</text></g>
+      </g>
+    </svg>
+    <p class="caption">Typical setup. Pole-mounted cameras cover the approach, the work zone and the downstream segment. Radar mounted beside a camera view gives ground-truth speeds for calibration, at night as well as by day.</p>
+  </div>
+
+
   <div class="steps">
-    <div class="step"><h3>Sense</h3><p>Traffic radar measures vehicle speeds while cameras record the scene for volume counts and context.</p></div>
-    <div class="step"><h3>Align</h3><p>Radar tracks and video are time-synchronized and matched vehicle by vehicle.</p></div>
-    <div class="step"><h3>Measure</h3><p>Speed distributions, compliance, flow and congestion state at each position through the zone.</p></div>
-    <div class="step"><h3>Recommend</h3><p>Compare techniques and site conditions to identify what works and where.</p></div>
+    <div class="step"><h3>Record</h3><p>Cameras on portable masts capture every vehicle at each position. Radar beside a camera view logs ground-truth speeds and counts.</p></div>
+    <div class="step"><h3>Calibrate &amp; track</h3><p>Camera views are calibrated to road geometry. Vehicles are detected and tracked, and their speeds are checked against radar, with an average error of 0.3–0.6 mph.</p></div>
+    <div class="step"><h3>Measure</h3><p>For each position we compute mean, median and 85th-percentile speeds, speed compliance, and flow rate per lane.</p></div>
+    <div class="step"><h3>Compare</h3><p>We compare positions, sites, times of day and countermeasures to see what holds speeds down.</p></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">6</div><div class="l">work zone sites recorded</div></div>
+    <div class="stat"><div class="n">8</div><div class="l">collection sessions, day, night and weekend</div></div>
+    <div class="stat"><div class="n">0.3–0.6 mph</div><div class="l">average camera speed estimation error</div></div>
+    <div class="stat"><div class="n">25–70 mph</div><div class="l">posted limits covered</div></div>
+  </div>
+
+  <div class="tablewrap">
+  <table class="sess">
+    <thead><tr><th>Site</th><th>Session</th><th>Limit</th><th>Countermeasures in place</th></tr></thead>
+    <tbody>
+      <tr><td>Bridge replacement, SR 10 Loop (Clarke)</td><td>Weekday AM · Wed May 6, 2026<br>Night · Fri May 8, 2026<br>Weekend · Sat May 9, 2026</td><td>55 mph</td><td>Lane reduction, cones</td></tr>
+      <tr><td>Roundabout, SR 124 (Barrow)</td><td>Weekday PM · Wed May 13, 2026</td><td>25 mph</td><td>Cones</td></tr>
+      <tr><td>I-20 resurfacing (Greene / Morgan)</td><td>Weekend AM · Sat May 16, 2026</td><td>70 mph</td><td>Night-only work, no active closure</td></tr>
+      <tr><td>Multi-lane closure, SR 141 (Gwinnett)</td><td>Night</td><td>55 mph</td><td>Cones, blue lights, 3-to-1 lane closure, police</td></tr>
+      <tr><td>Arterial widening, SR 9 (Forsyth)</td><td>Weekday PM</td><td>35 mph</td><td>Cones, lane closure</td></tr>
+      <tr><td>Bridge bundle, SR 316 at Barber Creek</td><td>Weekday PM</td><td>55 mph</td><td>Cones, lane closure</td></tr>
+    </tbody>
+  </table>
   </div>
 </div></section>
 
-<section id="timeline"><div class="wrap two">
-  <div>
-    <div class="kicker">Timeline</div>
-    <h2>Key milestones</h2>
-    <p>The project runs from July 2025 to January 2028 and closes with a seminar and a Work Zone Safety Guide for GDOT.</p>
+<section id="results"><div class="wrap">
+  <div class="kicker">04 · Field findings (preliminary)</div>
+  <h2>How fast do drivers go through the zone?</h2>
+  <p class="narrow">Speed compliance is the share of vehicles whose average speed through a camera view is at or below the posted limit. Results below are from the first round of field data, presented at the October 2026 mid-project meeting.</p>
+
+  <div class="chart-card">
+    <h3>Speed compliance by site and position</h3>
+    <div class="sub">Share of vehicles at or below the posted limit</div>
+    <div id="complianceChart"></div>
+    <div class="legend"><span><i style="background:var(--c-before)"></i>Before the zone</span><span><i style="background:var(--c-within)"></i>Within the zone</span><span><i style="background:var(--c-after)"></i>After the zone</span></div>
   </div>
-  <ol class="timeline">
-    <li class="done"><time>July 2025</time><strong>Project start &amp; kick-off</strong></li>
-    <li class="done"><time>2025 – 2026</time><strong>Literature review &amp; State DOT survey</strong></li>
-    <li class="done"><time>Spring – Fall 2026</time><strong>GDOT interviews &amp; field data collection</strong></li>
-    <li class="now"><time>October 2026</time><strong>Mid-project meeting with GDOT</strong></li>
-    <li><time>2027</time><strong>Field testing of new methods</strong></li>
-    <li><time>October 2027</time><strong>Draft report</strong></li>
-    <li><time>January 2028</time><strong>Final report &amp; Work Zone Safety Guide</strong></li>
-  </ol>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="chart-card" id="detail"></div>
+
+  <div class="chart-card">
+    <h3>Same site, different times: bridge replacement</h3>
+    <div class="sub">85th-percentile speed (mph) at each position. Posted limit 55 mph.</div>
+    <div id="todChart"></div>
+    <div class="legend"><span><i style="background:#1a1a18"></i>Weekday morning</span><span><i style="background:#ba2020"></i>Friday night</span><span><i style="background:#e0a23a"></i>Saturday morning</span></div>
+  </div>
+
+  <h3 style="margin-top:56px">Key takeaways so far</h3>
+  <div class="findings">
+    <div class="finding"><span class="tag good">What worked</span><ul>
+      <li><b>Police presence.</b> With police vehicles upstream and inside the SR 141 closure, every vehicle observed stayed under the limit.</li>
+      <li><b>Lane closure with dense traffic.</b> Dropping three lanes to one held speeds to about 17–23 mph at the start of and inside the zone.</li>
+      <li><b>Complex geometry.</b> The roundabout at a curved T-junction had the highest compliance of the uncongested sites.</li>
+    </ul></div>
+    <div class="finding"><span class="tag bad">Needs improvement</span><ul>
+      <li>Long, straight and rural segments, where drivers return to normal speeds mid-zone.</li>
+      <li>Long-standing work zones that regular drivers have grown used to.</li>
+      <li>Open layouts and downhill approaches, such as the low-elevation bridge segment.</li>
+    </ul></div>
+    <div class="finding"><span class="tag rec">Recommendations</span><ul>
+      <li>Spread enforcement before and along the zone, not only at the entry.</li>
+      <li>Add mid-zone measures on long straight segments, such as speed feedback signs or rumble strips.</li>
+      <li>Refresh signs and messages in long-duration work zones.</li>
+    </ul></div>
+  </div>
 </div></section>
 
 <section id="team"><div class="wrap">
@@ -243,5 +379,198 @@ footer a{color:var(--red);text-decoration:none}
   <a href="https://camis-uga.github.io/lab/">← Back to the lab</a>
 </div></footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* Site data: speeds in mph (mean, median, P85), compliance in % at or below limit. */
+const SITES = [
+  {id:1, short:"Bridge replacement", name:"Bridge replacement, SR 10 Loop", county:"Clarke", project:"0013715",
+   ll:[33.958540,-83.435445], exact:true, limit:55, measures:"Lane reduction, cones",
+   session:"Weekday morning, May 6, 2026", positions:[
+     {p:"Before",mean:58.4,med:57.8,p85:64.2,comp:20.2},
+     {p:"Within",mean:65.7,med:69.1,p85:82.8,comp:24.8},
+     {p:"After", mean:50.0,med:50.6,p85:63.7,comp:63.9}],
+   obs:"The work zone sits lower than the segments on either side, and speeds peak inside it: the 85th-percentile speed reaches 82.8 mph against a 55 mph limit. Compliance is lowest within the zone."},
+  {id:2, short:"I-20 resurfacing", name:"I-20 resurfacing", county:"Greene / Morgan", project:"M006647 / M006654",
+   ll:[33.551243,-83.357778], exact:true, limit:70, measures:"Night-only work, no active closure",
+   session:"Saturday morning, May 16, 2026", positions:[
+     {p:"Before",mean:67.7,med:67.0,p85:71.9,comp:71.4},
+     {p:"Within",mean:65.4,med:67.2,p85:73.7,comp:64.3},
+     {p:"After", mean:66.9,med:67.3,p85:75.5,comp:66.7}],
+   obs:"With no active construction during the session, speeds are nearly the same before, within and after the zone. The 85th-percentile speed exceeds 70 mph at all three positions."},
+  {id:3, short:"Roundabout", name:"Roundabout, SR 124 at Old Hog Mountain Rd", county:"Barrow", project:"0015882",
+   ll:[34.0740704721653,-83.8330266031159], exact:true, limit:25, measures:"Cones",
+   session:"Weekday afternoon, May 13, 2026", positions:[
+     {p:"Before",mean:22.0,med:21.5,p85:26.2,comp:83.9},
+     {p:"Within",mean:20.8,med:21.3,p85:22.9,comp:97.0},
+     {p:"After", mean:22.5,med:22.5,p85:24.8,comp:87.8}],
+   obs:"The zone sits on a curve at a T-junction, so drivers watch for merging side-road traffic. Compliance within the zone reaches 97%, the highest of the uncongested sites."},
+  {id:4, short:"SR 141 lane closure", name:"Multi-lane closure, SR 141 / Peachtree Industrial Blvd", county:"Gwinnett", project:"M006693",
+   ll:[33.9705,-84.2165], exact:false, limit:55, measures:"Cones, blue lights, 3-to-1 lane closure, police",
+   session:"Night", positions:[
+     {p:"Before",label:"Begin",mean:17.2,med:17.4,p85:21.8,comp:100},
+     {p:"Within",mean:23.0,med:21.3,p85:32.5,comp:100},
+     {p:"After", label:"End",mean:37.0,med:36.7,p85:38.5,comp:100}],
+   obs:"Three lanes were reduced to one, with a police vehicle upstream and another inside the zone. Dense traffic and enforcement kept every observed vehicle under the limit."},
+  {id:5, short:"SR 9 widening", name:"Arterial widening, SR 9", county:"Forsyth", project:"0003682",
+   ll:[34.1425,-84.2330], exact:false, limit:35, measures:"Cones, lane closure",
+   session:"Weekday afternoon", positions:[
+     {p:"Within",label:"Location 1",mean:39.7,med:39.9,p85:44.1,comp:11.3},
+     {p:"Within",label:"Location 2",mean:34.3,med:34.8,p85:39.8,comp:51.3}],
+   obs:"The zone runs for several miles, and both recordings were mid-block in a rural stretch. With little roadside activity, drivers return to their usual speeds. Only 11% complied at Location 1."},
+  {id:6, short:"SR 316 bridge bundle", name:"Bridge bundle, SR 316 at Barber Creek", county:"Oconee / Barrow", project:"Bundle 1",
+   ll:[33.9300,-83.5150], exact:false, limit:55, measures:"Cones, lane closure",
+   session:"Weekday afternoon", positions:[
+     {p:"Within",label:"Direction A",mean:61.7,med:61.6,p85:67.1,comp:9.2},
+     {p:"Within",label:"Direction B",mean:62.3,med:62.8,p85:69.0,comp:9.4}],
+   obs:"This long-standing zone sits on a long, straight road, and regular drivers are used to it. Fewer than 1 in 10 vehicles were at or below 55 mph in either direction."}
+];
+const COL = {Before:"#8a877e", Within:"#ba2020", After:"#e0a23a"};
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e;}
+
+/* ---- map ---- */
+(function(){
+  const list = document.getElementById('siteList');
+  let map=null, markers={};
+  if (window.L){
+    map = L.map('map',{scrollWheelZoom:false});
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom:18, className:'muted-tiles'}).addTo(map);
+    const b=[];
+    SITES.forEach(s=>{
+      const icon=L.divIcon({className:'',html:`<div class="mk${s.exact?'':' approx'}">${s.id}</div>`,iconSize:[28,28],iconAnchor:[14,14]});
+      markers[s.id]=L.marker(s.ll,{icon,title:s.name}).addTo(map)
+        .bindPopup(`<b>${s.id}. ${s.name}</b><br>${s.county} County · Project ${s.project}<br>Limit ${s.limit} mph · ${s.measures}${s.exact?'':'<br><i>Approximate location</i>'}`);
+      b.push(s.ll);
+    });
+    L.marker([33.9480,-83.3773],{icon:L.divIcon({className:'',html:'<div style="font:700 11px var(--sans);color:#1a1a18;background:#fff;border:1px solid #1a1a18;padding:1px 5px;white-space:nowrap">UGA</div>',iconSize:[34,18],iconAnchor:[17,9]}),interactive:false}).addTo(map);
+    map.fitBounds(b,{padding:[36,36]});
+  } else {
+    document.getElementById('map').innerHTML='<p style="padding:20px">Map could not be loaded.</p>';
+  }
+  SITES.forEach(s=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div class="pin" style="${s.exact?'':'background:#fff;color:var(--red);border:2px solid var(--red)'}">${s.id}</div><div><strong>${s.name}</strong><span>${s.county} County · limit ${s.limit} mph</span></div>`;
+    li.onclick=()=>{ if(map){map.setView(s.ll,12);markers[s.id].openPopup();} document.querySelectorAll('.site-list li').forEach(x=>x.classList.remove('on')); li.classList.add('on'); };
+    list.appendChild(li);
+  });
+})();
+
+/* ---- compliance dot chart ---- */
+(function(){
+  const W=1000, rowH=46, top=34, left=230, right=30, H=top+SITES.length*rowH+10;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Speed compliance by site'});
+  const x=v=>left+(W-left-right)*v/100;
+  [0,25,50,75,100].forEach(t=>{
+    svg.appendChild(el('line',{x1:x(t),x2:x(t),y1:top-8,y2:H-6,stroke:'#e2ded6'}));
+    svg.appendChild(el('text',{x:x(t),y:top-14,'text-anchor':'middle','font-size':13,fill:'#8a877e'},t+'%'));
+  });
+  SITES.forEach((s,i)=>{
+    const y=top+i*rowH+rowH/2;
+    svg.appendChild(el('text',{x:left-16,y:y-3,'text-anchor':'end','font-size':15,fill:'#1a1a18'},`${s.id}. ${s.short}`));
+    svg.appendChild(el('text',{x:left-16,y:y+14,'text-anchor':'end','font-size':12,fill:'#8a877e'},`limit ${s.limit} mph`));
+    const vals=s.positions.map(p=>p.comp);
+    svg.appendChild(el('line',{x1:x(Math.min(...vals)),x2:x(Math.max(...vals)),y1:y,y2:y,stroke:'#cfcabf','stroke-width':3}));
+    s.positions.forEach(p=>{
+      const g=el('g',{});
+      const c=el('circle',{cx:x(p.comp),cy:y,r:8,fill:COL[p.p],stroke:'#fff','stroke-width':2});
+      c.appendChild(el('title',{},`${p.label||p.p}: ${p.comp}% compliant`));
+      g.appendChild(c); svg.appendChild(g);
+    });
+  });
+  document.getElementById('complianceChart').appendChild(svg);
+})();
+
+/* ---- per-site speed bars ---- */
+function speedBars(s){
+  const W=560,H=300,l=44,r=10,t=24,b=44, max=Math.max(90,Math.ceil(Math.max(...s.positions.map(p=>p.p85))/10)*10+10);
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`Speeds at ${s.name}`});
+  const y=v=>t+(H-t-b)*(1-v/max);
+  for(let v=0;v<=max;v+=max>60?20:10){svg.appendChild(el('line',{x1:l,x2:W-r,y1:y(v),y2:y(v),stroke:'#eeebe4'}));svg.appendChild(el('text',{x:l-8,y:y(v)+4,'text-anchor':'end','font-size':12,fill:'#8a877e'},v));}
+  const gw=(W-l-r)/s.positions.length, bw=Math.min(36,gw/4.2);
+  const series=[['mean','Mean',.45],['med','Median',.7],['p85','85th pct.',1]];
+  s.positions.forEach((p,i)=>{
+    const cx=l+gw*i+gw/2;
+    series.forEach(([k,lab,op],j)=>{
+      const bx=cx+(j-1.5)*bw+2, v=p[k];
+      const rect=el('rect',{x:bx,y:y(v),width:bw-4,height:y(0)-y(v),fill:COL[p.p],'fill-opacity':op,rx:2});
+      rect.appendChild(el('title',{},`${p.label||p.p} ${lab}: ${v} mph`)); svg.appendChild(rect);
+      svg.appendChild(el('text',{x:bx+(bw-4)/2,y:y(v)-5,'text-anchor':'middle','font-size':11,fill:'#5a5a52'},v.toFixed(0)));
+    });
+    svg.appendChild(el('text',{x:cx,y:H-b+20,'text-anchor':'middle','font-size':14,fill:'#1a1a18'},p.label||p.p));
+    svg.appendChild(el('text',{x:cx,y:H-b+37,'text-anchor':'middle','font-size':12,fill:'#8a877e'},`${p.comp}% compliant`));
+  });
+  svg.appendChild(el('line',{x1:l,x2:W-r,y1:y(s.limit),y2:y(s.limit),stroke:'#1a1a18','stroke-dasharray':'6 5','stroke-width':1.5}));
+  svg.appendChild(el('text',{x:W-r,y:y(s.limit)-6,'text-anchor':'end','font-size':12,fill:'#1a1a18',stroke:'#fbfaf7','stroke-width':4,'paint-order':'stroke'},`limit ${s.limit} mph`));
+  return svg;
+}
+(function(){
+  const tabs=document.getElementById('tabs'), d=document.getElementById('detail');
+  function show(s,btn){
+    tabs.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b===btn);b.setAttribute('aria-selected',b===btn);});
+    d.innerHTML=`<div class="site-detail"><div class="chartbox"></div><div><div class="meta">Site ${s.id} · ${s.county} County · ${s.session}</div><h3>${s.name}</h3><p class="meta" style="margin-top:4px">Countermeasures: ${s.measures}</p><p class="obs">${s.obs}</p><p class="note">Bars show mean, median and 85th-percentile speed, light to dark.</p></div></div>`;
+    d.querySelector('.chartbox').appendChild(speedBars(s));
+  }
+  SITES.forEach((s,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab'); b.textContent=`${s.id}. ${s.short}`;
+    b.onclick=()=>show(s,b); tabs.appendChild(b); if(i===0) show(s,b);
+  });
+})();
+
+/* ---- time-of-day comparison (bridge site P85) ---- */
+(function(){
+  const data=[['Weekday morning','#1a1a18',[64.2,82.8,63.7]],['Friday night','#ba2020',[74.3,82.7,85.0]],['Saturday morning','#e0a23a',[85.0,80.1,75.2]]];
+  const pos=['Before','Within','After'];
+  const W=1000,H=280,l=50,r=30,t=20,b=36,min=50,max=90;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'85th percentile speeds by time of day at the bridge site'});
+  const x=i=>l+(W-l-r)*(i+.5)/3, y=v=>t+(H-t-b)*(1-(v-min)/(max-min));
+  for(let v=min;v<=max;v+=10){svg.appendChild(el('line',{x1:l,x2:W-r,y1:y(v),y2:y(v),stroke:'#eeebe4'}));svg.appendChild(el('text',{x:l-8,y:y(v)+4,'text-anchor':'end','font-size':12,fill:'#8a877e'},v));}
+  svg.appendChild(el('line',{x1:l,x2:W-r,y1:y(55),y2:y(55),stroke:'#1a1a18','stroke-dasharray':'6 5','stroke-width':1.5}));
+  svg.appendChild(el('text',{x:W-r,y:y(55)-6,'text-anchor':'end','font-size':12,fill:'#1a1a18'},'limit 55 mph'));
+  pos.forEach((p,i)=>svg.appendChild(el('text',{x:x(i),y:H-10,'text-anchor':'middle','font-size':14,fill:'#1a1a18'},p)));
+  data.forEach(([lab,c,v])=>{
+    svg.appendChild(el('polyline',{points:v.map((d,i)=>`${x(i)},${y(d)}`).join(' '),fill:'none',stroke:c,'stroke-width':2.5}));
+    v.forEach((d,i)=>{const ci=el('circle',{cx:x(i),cy:y(d),r:6,fill:c,stroke:'#fff','stroke-width':2});ci.appendChild(el('title',{},`${lab}, ${pos[i]}: ${d} mph`));svg.appendChild(ci);});
+  });
+  document.getElementById('todChart').appendChild(svg);
+})();
+/* ---- literature range chart ---- */
+(function(){
+  const rows=[['Advisory speed signs',0,0.5,'minimal'],['Temporary rumble strips',1,2,'1–2'],['PCMS, general message',1,4,'1–4'],['Speed feedback signs',3,6,'3–6'],['PCMS, vehicle-activated',0,7,'up to 7']];
+  const W=1000,rh=40,t=26,l=230,r=60,H=t+rows.length*rh+8,max=8;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Reported speed reductions'});
+  const x=v=>l+(W-l-r)*v/max;
+  for(let v=0;v<=max;v+=2){svg.appendChild(el('line',{x1:x(v),x2:x(v),y1:t-6,y2:H-6,stroke:'#eeebe4'}));svg.appendChild(el('text',{x:x(v),y:t-12,'text-anchor':'middle','font-size':12,fill:'#8a877e'},v+' mph'));}
+  rows.forEach(([n,a,b,lab],i)=>{const y=t+i*rh+rh/2;
+    svg.appendChild(el('text',{x:l-14,y:y+5,'text-anchor':'end','font-size':14,fill:'#1a1a18'},n));
+    const dashed = n.includes('vehicle-activated');
+    svg.appendChild(el('rect',{x:x(a),y:y-8,width:Math.max(6,x(b)-x(a)),height:16,rx:8,fill:dashed?'#f0e8e8':'#ba2020',stroke:dashed?'#ba2020':'none','stroke-dasharray':dashed?'4 3':''}));
+    svg.appendChild(el('text',{x:x(b)+10,y:y+5,'font-size':13,fill:'#5a5a52'},lab));});
+  document.getElementById('litChart').appendChild(svg);
+})();
+
+/* ---- survey effectiveness x cost matrix ---- */
+(function(){
+  const items={'High|Moderate':['Law enforcement','Speed feedback signs'],'High|High':['Queue warning systems'],'High|Low':['Temporary rumble strips'],
+    'Moderate|Moderate':['Portable traffic signals','AFADs','Human flaggers','Message signs (PCMS)','Variable speed limits','Connected vehicle tech'],
+    'Moderate|Low':['Lane width reduction'],'Low|Low':['Advisory speed signs']};
+  const eff=['High','Moderate','Low'], cost=['Low','Moderate','High'];
+  const box=document.getElementById('matrix');
+  let h='<div style="display:grid;grid-template-columns:auto repeat(3,1fr);gap:4px;margin-top:16px;font-size:.8rem">';
+  h+='<div></div>'+cost.map(c=>`<div style="text-align:center;color:var(--soft);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">${c} cost</div>`).join('');
+  eff.forEach(e=>{h+=`<div style="writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;color:var(--soft);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase">${e} eff.</div>`;
+    cost.forEach(c=>{const it=items[e+'|'+c]||[];const good=e==='High'&&c==='Low';const bg=e==='High'?(good?'#e7efe6':'#f0e8e8'):e==='Moderate'?'#f3f0ea':'#f7f6f2';
+      h+=`<div class="matrix-cell" style="background:${bg};min-height:86px;padding:8px;border-radius:3px">${it.map(x=>`<div style="line-height:1.3;margin-bottom:4px">${x}</div>`).join('')}</div>`;});});
+  h+='</div><p class="note">Effectiveness rises from bottom to top, and cost rises from left to right. The best value is in the top-left cell.</p>';
+  box.innerHTML=h;
+})();
+
+/* ---- most promising ---- */
+(function(){
+  const rows=[['Automated speed enforcement',33],['Connected vehicle technologies',20],['Queue warning systems',17]];
+  document.getElementById('promising').innerHTML=rows.map(([n,v])=>`<div style="margin-top:14px"><div style="display:flex;justify-content:space-between;font-size:.9rem"><span>${n}</span><b style="font-weight:500">${v}%</b></div><div style="height:8px;background:var(--line);border-radius:4px;margin-top:5px"><div style="width:${v/40*100}%;height:100%;background:var(--red);border-radius:4px"></div></div></div>`).join('');
+})();
+</script>
 </body>
 </html>
